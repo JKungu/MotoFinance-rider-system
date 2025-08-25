@@ -7,21 +7,30 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarHeader,
 } from "@/components/ui/sidebar";
 import {
-  Bike,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Home,
   Users,
   UserCheck,
-  CreditCard,
-  BarChart3,
+  Bike,
+  DollarSign,
   FileText,
   Settings,
   LogOut,
-  Home,
+  User,
+  TrendingUp,
+  AlertTriangle,
+  Calculator,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -49,40 +58,35 @@ const menuItems = [
   {
     title: "Payments",
     url: "/payments",
-    icon: CreditCard,
+    icon: DollarSign,
   },
   {
     title: "Reports",
     url: "/reports",
-    icon: BarChart3,
+    icon: TrendingUp,
   },
   {
     title: "Expenses",
     url: "/expenses",
-    icon: FileText,
+    icon: Calculator,
+  },
+  {
+    title: "SMS Notifications",
+    url: "/notifications",
+    icon: AlertTriangle,
   },
 ];
 
 export function AppSidebar() {
-  const [userProfile, setUserProfile] = useState<any>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .single();
-        setUserProfile(profile);
-      }
-    };
-
-    fetchUserProfile();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
   }, []);
 
   const handleSignOut = async () => {
@@ -90,7 +94,7 @@ export function AppSidebar() {
     if (error) {
       toast({
         title: "Error",
-        description: error.message,
+        description: "Failed to sign out",
         variant: "destructive",
       });
     } else {
@@ -100,12 +104,18 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
+      <SidebarHeader className="p-4">
+        <div className="flex items-center gap-2">
+          <Bike className="h-8 w-8 text-primary" />
+          <div>
+            <h2 className="text-lg font-semibold">MotoFinance</h2>
+            <p className="text-xs text-muted-foreground">Operations System</p>
+          </div>
+        </div>
+      </SidebarHeader>
+      
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center gap-2">
-            <Bike className="h-5 w-5" />
-            Moto Finance
-          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -114,8 +124,11 @@ export function AppSidebar() {
                     asChild
                     isActive={location.pathname === item.url}
                   >
-                    <a href={item.url}>
-                      <item.icon />
+                    <a href={item.url} onClick={(e) => {
+                      e.preventDefault();
+                      navigate(item.url);
+                    }}>
+                      <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
                     </a>
                   </SidebarMenuButton>
@@ -125,23 +138,28 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      
       <SidebarFooter>
         <SidebarMenu>
-          {userProfile && (
-            <SidebarMenuItem>
-              <div className="px-3 py-2 text-sm">
-                <div className="font-medium">{userProfile.full_name}</div>
-                <div className="text-muted-foreground capitalize">
-                  {userProfile.role}
-                </div>
-              </div>
-            </SidebarMenuItem>
-          )}
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleSignOut}>
-              <LogOut />
-              <span>Sign Out</span>
-            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton>
+                  <User className="h-4 w-4" />
+                  <span>{user?.email || "User"}</span>
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="top" className="w-[--radix-popper-anchor-width]">
+                <DropdownMenuItem onClick={() => navigate("/settings")}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

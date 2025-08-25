@@ -8,7 +8,7 @@ interface StatsCardProps {
   description?: string;
   trend?: {
     value: number;
-    label: string;
+    positive: boolean;
   };
 }
 
@@ -25,14 +25,9 @@ export function StatsCard({ title, value, icon: Icon, description, trend }: Stat
           <p className="text-xs text-muted-foreground">{description}</p>
         )}
         {trend && (
-          <div className="flex items-center pt-1">
-            <span
-              className={`text-xs ${
-                trend.value > 0 ? "text-green-600" : trend.value < 0 ? "text-red-600" : "text-muted-foreground"
-              }`}
-            >
-              {trend.value > 0 ? "+" : ""}{trend.value}% {trend.label}
-            </span>
+          <div className={`text-xs ${trend.positive ? 'text-success' : 'text-destructive'} flex items-center gap-1 mt-1`}>
+            <span>{trend.positive ? '↗' : '↘'}</span>
+            {Math.abs(trend.value)}% from last month
           </div>
         )}
       </CardContent>
