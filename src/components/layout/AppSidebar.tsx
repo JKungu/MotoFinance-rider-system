@@ -72,7 +72,7 @@ const menuItems = [
   },
   {
     title: "SMS Notifications",
-    url: "/notifications",
+    url: "/sms-notifications",
     icon: AlertTriangle,
   },
 ];
