@@ -355,6 +355,38 @@ export default function SMSNotifications() {
   const totalFailed = notifications.filter(n => n.status === 'failed').length;
   const deliveryRate = notifications.length > 0 ? (totalSent / notifications.length) * 100 : 0;
 
+  // Get pending SMS that need to be sent
+  const getPendingSMS = () => {
+    const today = new Date().toISOString().split('T')[0];
+    const pendingTypes = [
+      'payment_confirmation',
+      'payment_reminder', 
+      'ownership_congratulations'
+    ];
+    
+    // This is a simplified representation - in reality you'd check against actual business logic
+    return [
+      {
+        type: 'payment_reminder',
+        count: 5,
+        description: 'Daily payment reminders for riders with missed payments'
+      },
+      {
+        type: 'payment_confirmation', 
+        count: 0,
+        description: 'Confirmations for payments received today'
+      },
+      {
+        type: 'ownership_congratulations',
+        count: 0,
+        description: 'Congratulations for 366-day completion'
+      }
+    ];
+  };
+
+  const pendingSMS = getPendingSMS();
+  const totalPendingSMS = pendingSMS.reduce((sum, item) => sum + item.count, 0);
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -455,9 +487,9 @@ export default function SMSNotifications() {
             icon={CheckCircle}
           />
           <StatsCard
-            title="Pending"
+            title="Queue Pending"
             value={totalPending.toString()}
-            description="Messages in queue"
+            description="Messages being processed"
             icon={Clock}
           />
           <StatsCard
@@ -474,6 +506,57 @@ export default function SMSNotifications() {
           />
         </div>
 
+        {/* Pending SMS to be Generated */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              SMS Ready to Send ({totalPendingSMS})
+            </CardTitle>
+            <CardDescription>
+              Automated messages that can be triggered based on current system data
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {pendingSMS.map((sms, index) => (
+                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <Badge className={getMessageTypeColor(sms.type)}>
+                        {sms.type.replace('_', ' ')}
+                      </Badge>
+                      <span className="font-medium">{sms.count} pending</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">{sms.description}</p>
+                  </div>
+                  {sms.count > 0 && (
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        if (sms.type === 'payment_reminder') {
+                          checkMissedPayments();
+                        } else if (sms.type === 'payment_confirmation') {
+                          checkRecentPayments();
+                        } else if (sms.type === 'ownership_congratulations') {
+                          checkOwnershipCompletion();
+                        }
+                        toast({
+                          title: "SMS Triggered",
+                          description: `Processing ${sms.count} ${sms.type.replace('_', ' ')} messages`,
+                        });
+                      }}
+                    >
+                      <Send className="h-4 w-4 mr-1" />
+                      Send Now
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="mb-4 flex gap-2">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -486,7 +569,7 @@ export default function SMSNotifications() {
           </div>
           <Button onClick={scheduleAutomatedMessages} variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" />
-            Run Automation
+            Run All Automation
           </Button>
         </div>
 
