@@ -313,7 +313,7 @@ export type Database = {
         Row: {
           age: number
           created_at: string
-          created_by: string | null
+          created_by: string
           full_name: string
           id: string
           id_number: string
@@ -334,7 +334,7 @@ export type Database = {
         Insert: {
           age: number
           created_at?: string
-          created_by?: string | null
+          created_by?: string
           full_name: string
           id?: string
           id_number: string
@@ -355,7 +355,7 @@ export type Database = {
         Update: {
           age?: number
           created_at?: string
-          created_by?: string | null
+          created_by?: string
           full_name?: string
           id?: string
           id_number?: string
