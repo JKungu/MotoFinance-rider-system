@@ -85,12 +85,20 @@ export default function PotentialRiders() {
     setLoading(true);
 
     try {
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        throw new Error("User not authenticated");
+      }
+
       const { error } = await supabase
         .from("potential_riders")
         .insert([{
           ...formData,
           age: parseInt(formData.age),
           probable_financing_date: formData.probable_financing_date || null,
+          created_by: user.id,
         }]);
 
       if (error) throw error;
