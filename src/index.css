@@ -110,4 +110,9 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Hide Lovable badge globally */
+  #lovable-badge {
+    display: none !important;
+  }
 }
