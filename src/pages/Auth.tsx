@@ -41,9 +41,13 @@ export default function Auth() {
     setLoading(true);
 
     try {
+      // Validate input
+      const { signInSchema } = await import("@/lib/validations");
+      const validated = signInSchema.parse({ email, password });
+
       const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: validated.email,
+        password: validated.password,
       });
 
       if (error) {
@@ -53,12 +57,20 @@ export default function Auth() {
           variant: "destructive",
         });
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0]?.message || "Invalid input",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -68,24 +80,23 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
 
-    if (password !== confirmPassword) {
-      toast({
-        title: "Password Mismatch",
-        description: "Passwords do not match. Please try again.",
-        variant: "destructive",
-      });
-      setLoading(false);
-      return;
-    }
-
     try {
-      const { error } = await supabase.auth.signUp({
+      // Validate input
+      const { signUpSchema } = await import("@/lib/validations");
+      const validated = signUpSchema.parse({
+        fullName,
         email,
         password,
+        confirmPassword,
+      });
+
+      const { error } = await supabase.auth.signUp({
+        email: validated.email,
+        password: validated.password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
-            full_name: fullName,
+            full_name: validated.fullName,
           },
         },
       });
@@ -102,12 +113,20 @@ export default function Auth() {
           description: "Please check your email to confirm your account",
         });
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0]?.message || "Invalid input",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
