@@ -165,11 +165,26 @@ export default function Payments() {
         throw new Error("User not authenticated");
       }
 
+      // Validate input
+      const { paymentSchema } = await import("@/lib/validations");
+      const validated = paymentSchema.parse({
+        rider_id: formData.rider_id,
+        amount: parseFloat(formData.amount),
+        payment_date: formData.payment_date,
+        payment_method: formData.payment_method,
+        transaction_reference: formData.transaction_reference,
+        notes: formData.notes,
+      });
+
       const { error } = await supabase
         .from("payments")
         .insert([{
-          ...formData,
-          amount: parseFloat(formData.amount),
+          rider_id: validated.rider_id,
+          amount: validated.amount,
+          payment_date: validated.payment_date,
+          payment_method: validated.payment_method,
+          transaction_reference: validated.transaction_reference || null,
+          notes: validated.notes || null,
           created_by: user.id,
         }]);
 
@@ -185,11 +200,19 @@ export default function Payments() {
       fetchPayments();
       fetchPaymentProgress();
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to record payment",
-        variant: "destructive",
-      });
+      if (error.name === 'ZodError') {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0]?.message || "Invalid input",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to record payment",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
