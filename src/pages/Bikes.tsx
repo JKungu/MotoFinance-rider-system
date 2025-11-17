@@ -54,7 +54,7 @@ export default function Bikes() {
         .from("bikes")
         .select(`
           *,
-          financed_riders!bikes_current_rider_id_fkey (
+          financed_riders!fk_bikes_current_rider (
             full_name,
             primary_phone,
             start_date,
