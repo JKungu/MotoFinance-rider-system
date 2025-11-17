@@ -68,11 +68,7 @@ export default function Reports() {
         .gte("expense_date", `${selectedYear}-01-01`)
         .lte("expense_date", `${selectedYear}-12-31`);
 
-      if (expensesError) {
-        console.error("Reports expenses fetch error:", expensesError);
-        throw expensesError;
-      }
-      console.log("Reports expenses fetched:", expenses);
+      if (expensesError) throw expensesError;
 
       // Fetch rider statistics
       const { data: riders, error: ridersError } = await supabase
