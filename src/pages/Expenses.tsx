@@ -88,12 +88,17 @@ export default function Expenses() {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error("Expenses fetch error:", error);
+        throw error;
+      }
+      console.log("Expenses fetched successfully:", data);
       setExpenses(data || []);
     } catch (error: any) {
+      console.error("Expenses catch block:", error);
       toast({
         title: "Error",
-        description: "Failed to fetch expenses",
+        description: `Failed to fetch expenses: ${error.message || 'Unknown error'}`,
         variant: "destructive",
       });
     } finally {
